@@ -28,7 +28,7 @@
     },
     {
      "key": "Access-Control-Allow-Origin",
-     "value": "https://farecast.vercel.app"
+     "value": "https://farecast-zeta.vercel.app"
     },
     {
      "key": "Content-Security-Policy",

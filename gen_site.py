@@ -4,7 +4,7 @@ features, mean, std = m["features"], m["mean"], m["std"]
 coef, icpt = m["coef"], m["intercept"]
 mt = m["metrics"]
 r2, mae, rmse, base_mae, mean_cost = mt["cv_r2"], mt["cv_mae"], mt["cv_rmse"], mt["baseline_mae"], mt["mean_cost"]
-DOMAIN = "farecast.vercel.app"
+DOMAIN = "farecast-zeta.vercel.app"
 JS_MODEL = f"""const MEAN = {json.dumps(mean)};
 const STD = {json.dumps(std)};
 const COEF = {json.dumps(coef)};
