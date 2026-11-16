@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FareCast — Flight Fare Predictor | AI/ML Project</title>
+<meta name="description" content="FareCast predicts flight ticket fares from airline tier, stops, duration, days before departure, route type and travel class, using a ridge regression model trained on 600 synthetic flight bookings. Try it live in your browser.">
+<link rel="canonical" href="https://farecast.vercel.app/">
+<meta property="og:title" content="FareCast — Flight Fare Predictor">
+<meta property="og:description" content="Enter your flight details and instantly see the predicted ticket fare, with a real trained ML model running in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://farecast.vercel.app/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FareCast — Flight Fare Predictor">
+<meta name="twitter:description" content="Ridge regression flight fare predictor. Try the live demo in your browser.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"FareCast","applicationCategory":"EducationalApplication","description":"Flight fare predictor using ridge regression.","url":"https://farecast.vercel.app/"}</script>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff;max-width:720px;margin:0 auto;padding:24px;line-height:1.5}
+h1{font-size:2em} label{display:block;margin:12px 0 4px;font-weight:bold}
+input,select{width:100%;padding:10px;font-size:16px;border:1px solid #000;border-radius:4px;box-sizing:border-box}
+button{margin-top:16px;margin-right:8px;padding:12px 24px;font-size:17px;background:#000;color:#fff;border:none;border-radius:4px;cursor:pointer}
+#result{margin-top:24px;padding:20px;border:2px solid #000;border-radius:8px;display:none}
+#result b{font-size:1.6em}
+.note{color:#333;font-size:.95em} code{background:#f2f2f2;padding:2px 5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+</style>
+</head>
+<body>
+<h1>&#9992;&#65039; FareCast — Flight Fare Predictor</h1>
+<p class="note">A 2nd-year B.Tech AI/ML project by Vikranth Reddy. A ridge regression model trained on 600 synthetic flight bookings predicts a ticket fare from airline tier, stops, duration, days booked before departure, route type and travel class. 5-fold CV: <b>R&sup2; = 0.977</b>, <b>MAE = &#8377;1,284</b> vs a mean-guess baseline MAE of &#8377;8,349 (mean fare &#8377;27,599).</p>
+<div class="grid">
+<label>Airline tier<select id="f0"><option value="1" selected>Budget</option><option value="2">Mid-range</option><option value="3">Premium</option></select></label>
+<label>Stops<select id="f1"><option value="0" selected>Non-stop</option><option value="1">1 stop</option><option value="2">2 stops</option></select></label>
+<label>Duration (hours)<input type="number" step="0.5" min="1" max="14" id="f2" value="2.0"></label>
+<label>Days booked before departure<input type="number" step="1" min="1" max="90" id="f3" value="30"></label>
+<label>Route<select id="f4"><option value="1" selected>Short domestic</option><option value="2">Long domestic</option><option value="3">International</option></select></label>
+<label>Class<select id="f5"><option value="0" selected>Economy</option><option value="1">Business</option></select></label>
+</div>
+<button onclick="predict()">Predict Fare</button>
+<button onclick="tryBusiness()">Try a business-class trip</button>
+<button onclick="tryBudget()">Try a budget trip</button>
+<div id="result"></div>
+<p class="note">How it works: your six numbers are standardised (subtract the training mean, divide by the standard deviation), multiplied by the model&apos;s learned weights, and summed with a bias to give the fare in rupees; predictions are floored at &#8377;1,500. The exact same weights run in this page and in the Python training script (<code>train.py</code>), so the browser result matches the trained model.</p>
+<p class="note">Try it: a budget non-stop 2-hour short domestic economy flight, booked 30 days early &rarr; about &#8377;6,734. A premium non-stop 9-hour international business flight, booked 3 days early &rarr; about &#8377;44,607. A mid-range 1-stop 5.5-hour long domestic economy flight, booked 45 days early &rarr; about &#8377;18,078.</p>
+<p class="note">Honest note: this model was trained on synthetic bookings generated from simple fare logic, so it is a classroom demo — real fares also depend on the exact route, season, demand and the airline&apos;s dynamic pricing, which six numbers can&apos;t capture.</p>
+<p><a href="https://github.com/HVRGAMING2705/farecast">View source on GitHub</a></p>
+<script>
+const MEAN = [1.9933333333333334, 1.0266666666666666, 7.554757591264647, 45.81333333333333, 2.0016666666666665, 0.49166666666666664];
+const STD = [0.8266129014774023, 0.8057846417554085, 3.8329393480828724, 26.30136540604351, 0.8296568902597953, 0.4999305507323542];
+const COEF = [1519.3502745096507, -627.5737490436987, 6829.455506697028, -742.3783129027149, 3710.400365706954, 6008.041816669062];
+const INTERCEPT = 27599.314645630537;
+function farePred(vals){
+  let z = INTERCEPT;
+  for (let i = 0; i < 6; i++) z += COEF[i] * (vals[i] - MEAN[i]) / STD[i];
+  return Math.max(z, 1500);
+}
+function show(){
+  const vals = [];
+  for (let i = 0; i < 6; i++) vals.push(parseFloat(document.getElementById("f" + i).value) || 0);
+  const fare = farePred(vals);
+  const el = document.getElementById("result");
+  el.style.display = "block";
+  const verdict = vals[5] === 1 ? "&#128747;&#65039; BUSINESS CLASS — the class upgrade is the biggest single fare driver" : vals[3] <= 7 ? "&#128308; BOOKED LATE — booking within a week of departure pushes the fare up" : fare >= 30000 ? "&#128993; PRICEY ROUTE — long or international flights cost much more" : "&#128994; BUDGET-FRIENDLY — book early, fly economy, fly direct";
+  el.innerHTML = "<b>&#8377;" + fare.toLocaleString("en-IN", {maximumFractionDigits: 0}) + "</b><br>" + verdict;
+}
+function predict(){ show(); }
+function tryBusiness(){ const v = [3, 0, 9.0, 3, 3, 1]; for (let i = 0; i < 6; i++) document.getElementById("f" + i).value = v[i]; show(); }
+function tryBudget(){ const v = [1, 0, 2.0, 30, 1, 0]; for (let i = 0; i < 6; i++) document.getElementById("f" + i).value = v[i]; show(); }
+</script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://farecast.vercel.app/sitemap.xml
